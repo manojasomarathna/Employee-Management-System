@@ -23,8 +23,8 @@ function App() {
                     </Routes>
                 </main>
 
-                <footer className="bg-blue-600 text-blue-100 text-center py-4 text-sm">
-                    © 2026 Employee Management System. All rights reserved.
+                <footer className="bg-gradient-to-r from-blue-700 to-blue-500 text-blue-100 text-center py-4 text-sm">
+                    © 2026 <span className="font-semibold text-white">Employee Management System</span>. Built with Spring Boot &amp; React.
                 </footer>
 
             </div>

@@ -1,11 +1,11 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:8080/api/employees";
+const API_URL = import.meta.env.VITE_API_URL;
 
 
-export const getEmployees = (page = 0, size = 5) => {
+export const getEmployees = (page = 0, size = 5, sortBy = "id", sortDirection = "asc") => {
     return axios.get(
-        `${API_URL}?page=${page}&size=${size}`
+        `${API_URL}?page=${page}&size=${size}&sortBy=${sortBy}&sortDirection=${sortDirection}`
     );
 };
 
@@ -31,7 +31,5 @@ export const deleteEmployee = (id) => {
 
 
 export const searchEmployees = (name) => {
-    return axios.get(
-        `${API_URL}/search?name=${name}`
-    );
+    return axios.get(`${API_URL}/search?name=${encodeURIComponent(name)}`);
 };

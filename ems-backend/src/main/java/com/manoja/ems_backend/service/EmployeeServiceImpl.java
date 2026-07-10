@@ -10,7 +10,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class EmployeeServiceImpl implements EmployeeService {
@@ -92,6 +91,6 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         return employees.stream()
                 .map(EmployeeMapper::mapToEmployeeDto)
-                .collect(Collectors.toList());
+                .toList();
     }
 }

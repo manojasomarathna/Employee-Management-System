@@ -1,67 +1,37 @@
-import { useEffect, useState } from "react";
-import { getEmployees } from "./services/EmployeeService";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
+
+import Navbar from "./components/Navbar";
+import Dashboard from "./pages/Dashboard";
+import ListEmployeeComponent from "./pages/ListEmployeeComponent";
+import EmployeeComponent from "./pages/EmployeeComponent";
 
 function App() {
 
-  const [employees, setEmployees] = useState([]);
+    return (
+        <BrowserRouter>
+            <div className="flex flex-col min-h-screen">
 
-  useEffect(() => {
+                <Navbar />
 
-    getEmployees()
-      .then((response) => {
-        console.log(response.data);
-        setEmployees(response.data.content);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+                <main className="flex-grow bg-gray-100">
+                    <Routes>
+                        <Route path="/" element={<Dashboard />} />
+                        <Route path="/employees" element={<ListEmployeeComponent />} />
+                        <Route path="/add-employee" element={<EmployeeComponent />} />
+                        <Route path="/edit-employee/:id" element={<EmployeeComponent />} />
+                    </Routes>
+                </main>
 
-  }, []);
+                <footer className="bg-blue-600 text-blue-100 text-center py-4 text-sm">
+                    © 2026 Employee Management System. All rights reserved.
+                </footer>
 
+            </div>
 
-  return (
-    <div>
-
-      <h1>Employee Management System</h1>
-
-      <table border="1">
-
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>First Name</th>
-            <th>Last Name</th>
-            <th>Email</th>
-          </tr>
-        </thead>
-
-
-        <tbody>
-
-          {
-            employees.map(employee => (
-
-              <tr key={employee.id}>
-
-                <td>{employee.id}</td>
-
-                <td>{employee.firstName}</td>
-
-                <td>{employee.lastName}</td>
-
-                <td>{employee.email}</td>
-
-              </tr>
-
-            ))
-          }
-
-        </tbody>
-
-      </table>
-
-    </div>
-  );
+            <Toaster position="top-right" />
+        </BrowserRouter>
+    );
 }
 
 export default App;

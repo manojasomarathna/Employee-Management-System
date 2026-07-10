@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useReducer, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { getEmployees, deleteEmployee, searchEmployees } from "../services/EmployeeService";
@@ -8,38 +8,47 @@ function EmployeeTable() {
 
     const navigate = useNavigate();
 
-    const [employees, setEmployees] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
+    const fetchReducer = (state, action) => {
+        switch (action.type) {
+            case "LOADING": return { ...state, loading: true, error: null };
+            case "SUCCESS": return { loading: false, error: null, employees: action.employees, totalPages: action.totalPages ?? state.totalPages };
+            case "ERROR":   return { ...state, loading: false, error: action.error };
+            default: return state;
+        }
+    };
 
-    // Pagination
+    const [{ employees, loading, error, totalPages }, dispatch] = useReducer(fetchReducer, {
+        employees: [], loading: false, error: null, totalPages: 0
+    });
+
     const [page, setPage] = useState(0);
-    const [totalPages, setTotalPages] = useState(0);
     const pageSize = 5;
-
-    // Search
     const [searchTerm, setSearchTerm] = useState("");
-
-    // Sorting
     const [sortBy, setSortBy] = useState("id");
     const [sortDirection, setSortDirection] = useState("asc");
-
-    // Delete confirmation
     const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+    const [refreshKey, setRefreshKey] = useState(0);
+
+    const refresh = () => setRefreshKey((k) => k + 1);
 
 
-    const loadEmployees = () => {
-        setLoading(true);
-        setError(null);
+    useEffect(() => {
+        if (searchTerm.trim() !== "") return;
+
+        let cancelled = false;
+
+        dispatch({ type: "LOADING" });
 
         getEmployees(page, pageSize, sortBy, sortDirection)
             .then((res) => {
-                setEmployees(res.data.content);
-                setTotalPages(res.data.totalPages);
+                if (!cancelled) dispatch({ type: "SUCCESS", employees: res.data.content, totalPages: res.data.totalPages });
             })
-            .catch(() => setError("Cannot connect to server. Please check the backend."))
-            .finally(() => setLoading(false));
-    };
+            .catch(() => {
+                if (!cancelled) dispatch({ type: "ERROR", error: "Cannot connect to server. Please check the backend." });
+            });
+
+        return () => { cancelled = true; };
+    }, [page, sortBy, sortDirection, refreshKey]);
 
 
     const handleSearch = (e) => {
@@ -48,15 +57,14 @@ function EmployeeTable() {
         setPage(0);
 
         if (value.trim() === "") {
-            loadEmployees();
+            refresh();
             return;
         }
 
-        setLoading(true);
+        dispatch({ type: "LOADING" });
         searchEmployees(value)
-            .then((res) => setEmployees(res.data))
-            .catch(() => setError("Search failed."))
-            .finally(() => setLoading(false));
+            .then((res) => dispatch({ type: "SUCCESS", employees: res.data }))
+            .catch(() => dispatch({ type: "ERROR", error: "Search failed." }));
     };
 
 
@@ -65,17 +73,10 @@ function EmployeeTable() {
             .then(() => {
                 toast.success("Employee Deleted Successfully!");
                 setConfirmDeleteId(null);
-                loadEmployees();
+                refresh();
             })
             .catch(() => toast.error("Failed to delete employee."));
     };
-
-
-    useEffect(() => {
-        if (searchTerm.trim() === "") {
-            loadEmployees();
-        }
-    }, [page, sortBy, sortDirection]);
 
 
     return (
